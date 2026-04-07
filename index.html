@@ -7,12 +7,14 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <style>
         :root {
             --bg: #080a0c;
             --panel: rgba(23, 28, 33, 0.75);
-            --accent: #30D6FF; /* FerFer Signature Neon */
+            --accent: #30D6FF; 
             --accent-glow: rgba(48, 214, 255, 0.3);
             --success: #00ff88;
             --danger: #ff3e3e;
@@ -30,381 +32,379 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at top right, #101a25, var(--bg));
-            background-attachment: fixed;
+            background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
         }
 
-        /* Responsive Container */
         .container {
             width: 100%;
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 20px;
-            margin: auto;
-            animation: fadeIn 0.8s ease-out;
+            max-width: 420px;
+            padding: 24px;
+            position: relative;
         }
 
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; max-width: 750px; }
-            .panel { min-height: auto !important; }
-        }
-
-        @media (max-width: 480px) {
-            body { padding: 15px; }
-            .panel { padding: 25px 20px !important; border-radius: 20px !important; }
-            h1 { font-size: 18px !important; }
-            .footer-license { position: relative !important; margin-top: 40px; }
-            .controls-row { flex-direction: column; }
-            .mic-status-ring { width: 100% !important; border-radius: 14px !important; height: 60px !important; }
-        }
-
-        .panel {
+        .glass-panel {
             background: var(--panel);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 35px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            min-height: 580px;
-        }
-
-        h1 {
-            font-weight: 800;
-            font-size: 22px;
-            margin-bottom: 25px;
-            color: var(--accent);
-            text-shadow: 0 0 20px var(--accent-glow);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-transform: uppercase;
-        }
-
-        .input-group { margin-bottom: 20px; }
-        label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--text-dim);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        input[type="text"], input[type="password"], select {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px 18px;
-            color: white;
-            font-family: inherit;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        select option { background: #1a1f24; color: white; }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* Neon Slider */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-glow);
-            cursor: pointer;
-        }
-
-        button {
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 700;
-            border-radius: 14px;
-            border: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        #joinbtn {
-            background: var(--accent);
-            color: #000;
-            padding: 18px;
-            width: 100%;
-            font-size: 16px;
-            box-shadow: 0 10px 20px var(--accent-glow);
-        }
-
-        #joinbtn:hover { transform: translateY(-3px); filter: brightness(1.1); }
-
-        .controls-row { display: flex; gap: 15px; margin-top: 20px; }
-
-        #muteBtn {
-            flex: 1;
-            padding: 14px;
-            background: rgba(255,255,255,0.05);
-            color: white;
-            border: 1px solid var(--border);
-        }
-
-        #muteBtn.muted {
-            background: rgba(255, 62, 62, 0.15);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .mic-status-ring {
-            width: 54px;
-            height: 54px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            transition: all 0.2s ease;
-        }
-
-        .mic-status-ring.active {
-            color: var(--success);
-            border-color: var(--success);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-        }
-
-        #status {
-            font-size: 11px;
-            padding: 12px 18px;
-            background: rgba(48, 214, 255, 0.05);
-            border-radius: 12px;
-            margin-bottom: 25px;
-            color: var(--accent);
-            border-left: 3px solid var(--accent);
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .toggle-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .toggle-item span { font-size: 13px; font-weight: 600; opacity: 0.9; }
-
-        .footer-license {
-            margin-top: 50px;
+            border-radius: 32px;
+            padding: 40px 32px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
             text-align: center;
-            font-size: 11px;
+        }
+
+        .logo-section h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .logo-section span {
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .studio-tag {
+            font-size: 10px;
+            font-weight: 800;
             color: var(--text-dim);
             letter-spacing: 2px;
             text-transform: uppercase;
-            font-weight: 600;
+            margin-bottom: 32px;
+            display: block;
         }
 
-        .studio-link { color: var(--accent); text-decoration: none; font-weight: 800; margin-left: 5px; }
+        /* --- MIC VISUALIZER --- */
+        .mic-visualizer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .mic-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            transition: 0.3s;
+        }
+
+        .mic-ring.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: scale(1.1);
+        }
+
+        .mic-icon {
+            font-size: 32px;
+            color: var(--text);
+        }
+
+        /* --- FORM --- */
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 16px 14px 44px;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-connect {
+            width: 100%;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px var(--accent-glow);
+        }
+
+        .status-msg {
+            margin-top: 24px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .settings-panel {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .device-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        select {
+            background: transparent;
+            color: white;
+            border: none;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            max-width: 150px;
+            text-align: right;
+            outline: none;
+        }
+
+        .mute-btn {
+            background: var(--border);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mute-btn.muted {
+            background: var(--danger);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="panel">
-        <h1><i class="fa-solid fa-tower-broadcast"></i> Join Voice</h1>
-
-        <form id="joinForm">
-            <div class="input-group">
-                <label><i class="fa-solid fa-user"></i> Player Identity</label>
-                <input type="text" id="username" required placeholder="Minecraft Username">
+    <div class="container">
+        <div class="glass-panel">
+            <div class="logo-section">
+                <h1>BR-VOICE <span>3.1</span></h1>
+                <span class="studio-tag">FerFer Studio Edition</span>
             </div>
 
-            <div class="input-group">
-                <label><i class="fa-solid fa-key"></i> Connection Token</label>
-                <input type="password" id="password" required placeholder="••••••••">
+            <div class="mic-visualizer">
+                <div class="mic-ring" id="micRing"></div>
+                <i class="fa-solid fa-microphone-lines mic-icon"></i>
             </div>
 
-            <div class="input-group">
-                <label for="mic"><i class="fa-solid fa-microphone"></i> Input Hardware</label>
-                <select id="mic">
-                    <option value="">Allow mic access to see devices...</option>
-                </select>
+            <form id="joinForm">
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="username" placeholder="Minecraft Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="token" placeholder="Connection Token (/voice)" required>
+                </div>
+                <button type="submit" class="btn-connect" id="connectBtn">Connect to Geyser</button>
+            </form>
+
+            <div class="status-msg" id="status">
+                <i class="fa-solid fa-circle-dot"></i> STANDBY MODE
             </div>
 
-            <div class="input-group">
-                <label for="speaker"><i class="fa-solid fa-volume-high"></i> Output Hardware</label>
-                <select id="speaker">
-                    <option value="">System Default</option>
-                </select>
-            </div>
-
-            <button type="submit" id="joinbtn">
-                <i class="fa-solid fa-plug"></i> CONNECT TO GEYSER
-            </button>
-        </form>
-
-        <div class="controls-row">
-            <button id="muteBtn">
-                <i class="fa-solid fa-microphone-slash"></i> MUTE
-            </button>
-            <div id="micIndicator" class="mic-status-ring">
-                <i class="fa-solid fa-waveform-lines"></i>
+            <div class="settings-panel">
+                <div class="device-row">
+                    <span><i class="fa-solid fa-microphone"></i> INPUT</span>
+                    <select id="micSelect">
+                        <option>Detecting...</option>
+                    </select>
+                </div>
+                <div class="device-row" style="margin-top: 8px;">
+                    <button class="mute-btn" id="muteBtn">
+                        <i class="fa-solid fa-microphone-slash"></i> MUTE
+                    </button>
+                    <span style="font-size: 10px; opacity: 0.5;">GEYSER BRIDGE ACTIVE</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="panel">
-        <h1><i class="fa-solid fa-gears"></i> Engine Config</h1>
+    <script>
+        // --- CONFIGURATION ---
+        const BACKEND_URL = "https://your-backend.render.com"; // Change to your Render/Railway URL
+        
+        let socket;
+        let myPeer;
+        let localStream;
+        const peers = {};
 
-        <div id="status">
-            <i class="fa-solid fa-circle-dot fa-beat-fade"></i> ENGINE STATUS: STANDBY
-        </div>
+        const status = document.getElementById('status');
+        const micRing = document.getElementById('micRing');
+        const muteBtn = document.getElementById('muteBtn');
+        const micSelect = document.getElementById('micSelect');
 
-        <div style="flex-grow: 1;">
-            <div class="input-group">
-                <label><i class="fa-solid fa-sliders"></i> Capture Gain</label>
-                <input type="range" min="0" max="100" value="75">
-                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); margin-top: 8px;">
-                    <span>QUIET</span><span>LOUD</span>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label><i class="fa-solid fa-ear-listen"></i> Activation Sensitivity</label>
-                <input type="range" min="0" max="100" value="30">
-            </div>
-
-            <div class="toggle-list">
-                <div class="toggle-item">
-                    <span>Noise Suppression (Style 3.0)</span>
-                    <input type="checkbox" checked style="accent-color: var(--accent); width: 18px; height: 18px;">
-                </div>
-                <div class="toggle-item">
-                    <span>Acoustic Echo Cancellation</span>
-                    <input type="checkbox" checked style="accent-color: var(--accent); width: 18px; height: 18px;">
-                </div>
-                <div class="toggle-item" style="border: none;">
-                    <span>3D Proximity Rendering</span>
-                    <input type="checkbox" checked style="accent-color: var(--accent); width: 18px; height: 18px;">
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button id="diagBtn" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.05); color: var(--text-dim); font-size: 11px;">
-                <i class="fa-solid fa-vial"></i> DIAGNOSTIC
-            </button>
-            <button id="resetBtn" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.05); color: var(--text-dim); font-size: 11px;">
-                <i class="fa-solid fa-rotate"></i> RESET
-            </button>
-        </div>
-    </div>
-</div>
-
-<footer class="footer-license">
-    &copy; 2026 LICENSED BY
-    <a href="https://github.com/FerFerStudio" target="_blank" class="studio-link">FERFER STUDIO</a>
-</footer>
-
-<script>
-    const micSelect = document.getElementById('mic');
-    const speakerSelect = document.getElementById('speaker');
-    const muteBtn = document.getElementById('muteBtn');
-    const micRing = document.getElementById('micIndicator');
-    const status = document.getElementById('status');
-
-    // --- HARDWARE API ---
-    async function initHardware() {
-        try {
-            // Permission request to unlock device labels
-            await navigator.mediaDevices.getUserMedia({ audio: true });
-
-            const devices = await navigator.mediaDevices.enumerateDevices();
-
-            micSelect.innerHTML = '';
-            speakerSelect.innerHTML = '';
-
-            devices.forEach(device => {
-                const option = document.createElement('option');
-                option.value = device.deviceId;
-                option.text = device.label || `${device.kind} (${device.deviceId.slice(0, 5)})`;
-
-                if (device.kind === 'audioinput') {
-                    micSelect.appendChild(option);
-                } else if (device.kind === 'audiooutput') {
-                    speakerSelect.appendChild(option);
+        // --- HARDWARE INIT ---
+        async function initHardware() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                micSelect.innerHTML = '';
+                devices.forEach(device => {
+                    if (device.kind === 'audioinput') {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Mic ${micSelect.length + 1}`;
+                        micSelect.appendChild(option);
+                    }
+                });
+                
+                // Visualizer Logic
+                const audioContext = new AudioContext();
+                const source = audioContext.createMediaStreamSource(localStream);
+                const analyzer = audioContext.createAnalyser();
+                source.connect(analyzer);
+                
+                function animate() {
+                    const data = new Uint8Array(analyzer.frequencyBinCount);
+                    analyzer.getByteFrequencyData(data);
+                    const volume = data.reduce((a, b) => a + b) / data.length;
+                    
+                    if (volume > 10 && !muteBtn.classList.contains('muted')) {
+                        micRing.classList.add('active');
+                        micRing.style.transform = `scale(${1 + volume/100})`;
+                    } else {
+                        micRing.classList.remove('active');
+                        micRing.style.transform = `scale(1)`;
+                    }
+                    requestAnimationFrame(animate);
                 }
+                animate();
+
+            } catch (err) {
+                console.error("Mic Access Denied:", err);
+                status.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> MIC ACCESS DENIED';
+                status.style.color = 'var(--danger)';
+            }
+        }
+
+        // --- CONNECTION LOGIC ---
+        document.getElementById('joinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const token = document.getElementById('token').value;
+
+            status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AUTHENTICATING...';
+            status.style.color = 'var(--accent)';
+
+            // 1. Initialize PeerJS for Voice
+            myPeer = new Peer(undefined, {
+                host: '/',
+                port: '443'
             });
-        } catch (err) {
-            console.error("Hardware initialization failed:", err);
-            micSelect.innerHTML = '<option>Mic Access Denied</option>';
+
+            myPeer.on('open', id => {
+                // 2. Connect to Backend Socket
+                socket = io(BACKEND_URL);
+                
+                socket.emit('join-voice', {
+                    username: username,
+                    token: token,
+                    peerId: id
+                });
+
+                socket.on('auth-success', () => {
+                    status.innerHTML = '<i class="fa-solid fa-check-circle"></i> CONNECTED TO GEYSER';
+                    status.style.color = 'var(--success)';
+                    document.getElementById('connectBtn').style.display = 'none';
+                });
+
+                socket.on('auth-failed', () => {
+                    status.innerHTML = '<i class="fa-solid fa-xmark-circle"></i> INVALID TOKEN';
+                    status.style.color = 'var(--danger)';
+                    myPeer.destroy();
+                });
+
+                // 3. Handle Voice Calls
+                myPeer.on('call', call => {
+                    call.answer(localStream);
+                    const audio = document.createElement('audio');
+                    call.on('stream', userStream => {
+                        addAudioStream(audio, userStream);
+                    });
+                });
+
+                socket.on('user-connected', (userId) => {
+                    connectToNewUser(userId, localStream);
+                });
+            });
+        });
+
+        function connectToNewUser(userId, stream) {
+            const call = myPeer.call(userId, stream);
+            const audio = document.createElement('audio');
+            call.on('stream', userStream => {
+                addAudioStream(audio, userStream);
+            });
+            peers[userId] = call;
         }
-    }
 
-    // --- LOGIC ---
-    muteBtn.addEventListener('click', () => {
-        const isMuted = muteBtn.classList.toggle('muted');
-        muteBtn.innerHTML = isMuted ?
-            '<i class="fa-solid fa-microphone"></i> UNMUTE' :
-            '<i class="fa-solid fa-microphone-slash"></i> MUTE';
-    });
-
-    setInterval(() => {
-        if(!muteBtn.classList.contains('muted')) {
-            micRing.classList.toggle('active', Math.random() > 0.85);
-        } else {
-            micRing.classList.remove('active');
+        function addAudioStream(audio, stream) {
+            audio.srcObject = stream;
+            audio.addEventListener('loadedmetadata', () => {
+                audio.play();
+            });
         }
-    }, 150);
 
-    document.getElementById('joinForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ATTEMPTING HANDSHAKE...';
-        status.style.color = 'var(--accent)';
+        // --- UI CONTROLS ---
+        muteBtn.addEventListener('click', () => {
+            const isMuted = muteBtn.classList.toggle('muted');
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+            muteBtn.innerHTML = isMuted ?
+                '<i class="fa-solid fa-microphone-slash"></i> MUTED' :
+                '<i class="fa-solid fa-microphone"></i> MUTE';
+        });
 
-        setTimeout(() => {
-            status.innerHTML = '<i class="fa-solid fa-check-circle"></i> CONNECTED TO GEYSER';
-            status.style.color = 'var(--success)';
-        }, 2000);
-    });
-
-    // Start hardware engine
-    initHardware();
-    navigator.mediaDevices.ondevicechange = initHardware;
-</script>
-
+        initHardware();
+    </script>
 </body>
 </html>
