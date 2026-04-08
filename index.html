@@ -93,23 +93,12 @@
             transition: 0.3s;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        button {
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 700;
-            border-radius: 12px;
-            border: none;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
         }
 
         #joinbtn {
@@ -118,15 +107,16 @@
             padding: 15px;
             width: 100%;
             font-size: 15px;
+            font-weight: 800;
+            border-radius: 12px;
             margin-top: 10px;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
         }
 
-        #joinbtn.connected {
-            background: var(--danger);
-            color: white;
-        }
+        #joinbtn:hover { filter: brightness(1.2); }
 
-        /* Functional Components */
         #log {
             background: rgba(0,0,0,0.3);
             border-radius: 15px;
@@ -137,7 +127,7 @@
             overflow-y: auto;
             color: #a5b4fc;
             border: 1px solid var(--border);
-            margin: 15px 0;
+            margin-bottom: 15px;
             white-space: pre-wrap;
         }
 
@@ -149,6 +139,9 @@
             background: rgba(255,255,255,0.05);
             color: white;
             border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
         }
 
         #muteBtn.muted {
@@ -165,6 +158,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid var(--border);
+            transition: 0.2s;
         }
 
         .mic-status-ring.active {
@@ -176,17 +170,16 @@
         #status {
             font-size: 11px; padding: 10px 15px;
             background: rgba(48, 214, 255, 0.05);
-            border-radius: 10px;
+            border-radius: 10px; margin-bottom: 15px;
             color: var(--accent); border-left: 3px solid var(--accent);
-            font-weight: 800;
-            text-transform: uppercase;
+            font-weight: 800; text-transform: uppercase;
         }
 
-        .chat-area {
-            display: flex;
-            gap: 10px;
-            margin-top: auto;
+        #inputArea {
+            display: flex; gap: 8px; margin-top: auto;
         }
+
+        #inputArea input { flex: 1; }
 
         .footer-license {
             margin-top: 40px; text-align: center;
@@ -201,140 +194,74 @@
 
 <div class="container">
     <div class="panel">
-        <h1><i class="fa-solid fa-tower-broadcast"></i> Connect</h1>
+        <h1><i class="fa-solid fa-tower-broadcast"></i> Connection</h1>
         <form id="joinForm">
             <div class="input-group">
-                <label for="username"><i class="fa-solid fa-user"></i> Username</label>
-                <input type="text" id="username" required placeholder="Minecraft Name">
+                <label for="username"><i class="fa-solid fa-user"></i> Identity</label>
+                <input type="text" id="username" name="username" required placeholder="Minecraft Username">
             </div>
             <div class="input-group">
                 <label for="password"><i class="fa-solid fa-key"></i> Passcode</label>
-                <input type="password" id="password" required placeholder="••••••••">
+                <input type="password" id="password" name="password" required placeholder="••••••••">
             </div>
             <div class="input-group">
-                <label for="mic"><i class="fa-solid fa-microphone"></i> Input Device</label>
-                <select id="mic" name="mic"><option>Detecting...</option></select>
+                <label for="mic"><i class="fa-solid fa-microphone"></i> Microphone</label>
+                <select id="mic" name="mic"><option>Loading...</option></select>
             </div>
             <div class="input-group">
-                <label for="speaker"><i class="fa-solid fa-volume-high"></i> Output Device</label>
+                <label for="speaker"><i class="fa-solid fa-volume-high"></i> Output</label>
                 <select id="speaker" name="speaker"><option value="default">System Default</option></select>
             </div>
             <button type="submit" id="joinbtn">JOIN SESSION</button>
         </form>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+        
+        <h1><i class="fa-solid fa-sliders"></i> Engine Config</h1>
+        <div class="input-group">
+            <label>Capture Gain</label>
+            <input type="range" id="gainSlider" min="0" max="200" value="100">
+        </div>
+        <div class="input-group">
+            <label>VAD Sensitivity</label>
+            <input type="range" id="sensSlider" min="0" max="100" value="20">
+        </div>
     </div>
 
     <div class="panel">
-        <h1><i class="fa-solid fa-gears"></i> Live Status</h1>
-        <div id="status">Waiting for user...</div>
-
-        <div id="log">-- System Ready --</div>
+        <h1><i class="fa-solid fa-gears"></i> Engine Log</h1>
+        <div id="status">STATUS: STANDBY</div>
+        
+        <div id="log">-- System Initializing --</div>
 
         <div class="controls-row">
-            <button id="muteBtn" class="unmuted"><i class="fa-solid fa-microphone"></i> MUTE</button>
+            <button id="muteBtn" class="unmuted">MUTE</button>
             <div id="micIndicator" class="mic-status-ring"><i class="fa-solid fa-waveform-lines"></i></div>
-            <button id="testSound" style="background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 0 15px;">
+            <button id="testSound" style="background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 0 15px; border-radius: 12px; cursor: pointer;">
                 <i class="fa-solid fa-vial"></i> TEST
             </button>
         </div>
 
-        <div class="chat-area">
-            <input type="text" id="msgInput" placeholder="Send system command..." style="flex: 1;">
-            <button id="messageButton" style="background: var(--accent); color: #000; width: 50px;">
-                <i class="fa-solid fa-paper-plane"></i>
-            </button>
+        <div id="inputArea">
+            <input type="text" id="msgInput" placeholder="Type message..." />
+            <button id="messageButton" style="background: var(--accent); color: #000; padding: 0 20px; font-weight: 800; border-radius: 12px;">SEND</button>
         </div>
     </div>
 </div>
 
 <footer class="footer-license">
-    &copy; 2026 POWERED BY <a href="#" style="color:var(--accent); text-decoration:none;">FERFER STUDIO</a>
+    &copy; 2026 POWERED BY <a href="#" style="color:var(--accent); text-decoration:none; font-weight:800;">FERFER STUDIO</a>
 </footer>
 
 <script type="module">
     import { start } from '/client.js';
 
-    const joinForm = document.getElementById('joinForm');
-    const joinBtn = document.getElementById('joinbtn');
-    const muteBtn = document.getElementById('muteBtn');
-    const statusEl = document.getElementById('status');
-    const logEl = document.getElementById('log');
-    const micIndicator = document.getElementById('micIndicator');
-
-    let isMuted = false;
-    let isConnected = false;
-
-    // Helper to add logs
-    const addLog = (msg) => {
-        const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        logEl.innerHTML += `\n[${time}] ${msg}`;
-        logEl.scrollTop = logEl.scrollHeight;
-    };
-
-    // Hardware Detection
-    async function initHardware() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const micSelect = document.getElementById('mic');
-
-            micSelect.innerHTML = '';
-            devices.forEach(device => {
-                if (device.kind === 'audioinput') {
-                    const opt = document.createElement('option');
-                    opt.value = device.deviceId;
-                    opt.text = device.label || `Microphone ${micSelect.length + 1}`;
-                    micSelect.appendChild(opt);
-                }
-            });
-            stream.getTracks().forEach(t => t.stop()); // Clean up temp stream
-            addLog("Hardware detected and ready.");
-        } catch (e) {
-            addLog("Error: Mic permission denied.");
-            statusEl.innerText = "Error: Access Denied";
-        }
-    }
-
-    // Mute Toggle
-    muteBtn.onclick = () => {
-        isMuted = !isMuted;
-        muteBtn.classList.toggle('muted', isMuted);
-        muteBtn.innerHTML = isMuted ? '<i class="fa-solid fa-microphone-slash"></i> UNMUTE' : '<i class="fa-solid fa-microphone"></i> MUTE';
-        micIndicator.classList.toggle('active', !isMuted);
-        addLog(isMuted ? "Microphone muted." : "Microphone unmuted.");
-    };
-
-    // Form Submission
-    joinForm.onsubmit = (e) => {
-        e.preventDefault();
-        if (!isConnected) {
-            isConnected = true;
-            statusEl.innerHTML = '<i class="fa-solid fa-circle-dot fa-beat-fade"></i> ONLINE';
-            statusEl.style.color = "var(--success)";
-            joinBtn.innerText = "DISCONNECT";
-            joinBtn.classList.add('connected');
-            addLog(`Attempting connection for ${document.getElementById('username').value}...`);
-
-            start(); // Trigger the logic from client.js
-        } else {
-            // Disconnect Logic
-            location.reload();
-        }
-    };
-
-    // Test Sound
-    document.getElementById('testSound').onclick = () => {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-        addLog("Audio output test successful.");
-    };
-
-    initHardware();
+    // Bridge elements to client.js expectations
+    window.addEventListener("DOMContentLoaded", () => {
+        // Automatically run the startup logic
+        start();
+        console.log("Audio Engine and UI components initialized.");
+    });
 </script>
 
 </body>
