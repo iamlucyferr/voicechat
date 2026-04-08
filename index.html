@@ -1,268 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BR-VoiceChat 3.1 | FerFer Studio Edition</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>SimpleVoice-Geyser</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #1e1e1e;
+                color: #f5f5f5;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                margin: 0;
+                min-height: 100vh;
+            }
+            h1 {
+                color: #00d4ff;
+            }
+            form {
+                background: #2a2a2a;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px #000;
+                width: 100%;
+                max-width: 400px;
+                margin-bottom: 20px;
+            }
+            label, input, select {
+                display: block;
+                width: 100%;
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            input, select {
+                padding: 8px;
+                border-radius: 4px;
+                border: none;
+            }
+            button {
+                padding: 10px 15px;
+                background-color: #00d4ff;
+                border: none;
+                color: #000;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #00aacc;
+            }
+            #micControls {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 10px;
+            }
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+            #muteBtn {
+                padding: 10px 18px;
+                font-weight: bold;
+                border-radius: 6px;
+                transition: background-color 0.15s ease, color 0.15s ease;
+            }
 
-    <style>
-        :root {
-            --bg: #080a0c;
-            --panel: rgba(23, 28, 33, 0.75);
-            --accent: #30D6FF;
-            --accent-glow: rgba(48, 214, 255, 0.3);
-            --success: #00ff88;
-            --danger: #ff3e3e;
-            --text: #ffffff;
-            --text-dim: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
-        }
+            #muteBtn.muted {
+                background-color: #aa3333;
+                color: #fff;
+            }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+            #muteBtn.unmuted {
+                background-color: #33aa55;
+                color: #000;
+            }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at top right, #101a25, var(--bg));
-            background-attachment: fixed;
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-        }
+            #micIndicator {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background-color: #444; /* idle */
+                border: 1px solid #666;
+            }
 
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 20px;
-            animation: fadeIn 0.8s ease-out;
-        }
+            #micIndicator.active {
+                background-color: #33ff66;
+            }
+            #status {
+                margin: 10px;
+                padding: 8px 12px;
+                border-radius: 4px;
+                background: #333;
+                border: 1px solid #666;
+            }
+            #log {
+                width: 90%;
+                max-width: 600px;
+                height: 200px;
+                overflow-y: auto;
+                background: #2c2c2c;
+                border: 1px solid #555;
+                padding: 10px;
+                margin: 10px 0;
+                white-space: pre-wrap;
+                font-family: monospace;
+            }
+            #inputArea {
+                display: flex;
+                justify-content: center;   /* center contents */
+                align-items: center;
+                gap: 10px;
+                margin: 10px auto;         /* center container */
+                width: 90%;
+                max-width: 600px;
+            }
+        </style>
+    </head>
+    <body>
+    <h1>Join Simple Voice Chat</h1>
+    <form id="joinForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required autocomplete="username">
 
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; max-width: 750px; }
-        }
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required autocomplete="password">
 
-        .panel {
-            background: var(--panel);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 30px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-        }
+        <label for="mic">Select Microphone:</label>
+        <select id="mic" name="mic"></select>
 
-        h1 {
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: var(--accent);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        <label for="speaker">Select Speaker:</label>
+        <select id="speaker" name="speaker"></select>
 
-        .input-group { margin-bottom: 15px; }
-        label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--text-dim);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
+        <button type="submit" id="joinbtn">Join</button>
+    </form>
 
-        input[type="text"], input[type="password"], select {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 15px;
-            color: white;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent);
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 5px;
-        }
-
-        #joinbtn {
-            background: var(--accent);
-            color: #000;
-            padding: 15px;
-            width: 100%;
-            font-size: 15px;
-            font-weight: 800;
-            border-radius: 12px;
-            margin-top: 10px;
-            cursor: pointer;
-            border: none;
-            transition: 0.3s;
-        }
-
-        #joinbtn:hover { filter: brightness(1.2); }
-
-        #log {
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            padding: 15px;
-            font-family: 'monospace';
-            font-size: 12px;
-            height: 200px;
-            overflow-y: auto;
-            color: #a5b4fc;
-            border: 1px solid var(--border);
-            margin-bottom: 15px;
-            white-space: pre-wrap;
-        }
-
-        .controls-row { display: flex; gap: 12px; margin-bottom: 20px; }
-
-        #muteBtn {
-            flex: 1;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            color: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        #muteBtn.muted {
-            background: rgba(255, 62, 62, 0.2);
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .mic-status-ring {
-            width: 48px; height: 48px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            transition: 0.2s;
-        }
-
-        .mic-status-ring.active {
-            color: var(--success);
-            border-color: var(--success);
-            box-shadow: 0 0 10px var(--success);
-        }
-
-        #status {
-            font-size: 11px; padding: 10px 15px;
-            background: rgba(48, 214, 255, 0.05);
-            border-radius: 10px; margin-bottom: 15px;
-            color: var(--accent); border-left: 3px solid var(--accent);
-            font-weight: 800; text-transform: uppercase;
-        }
-
-        #inputArea {
-            display: flex; gap: 8px; margin-top: auto;
-        }
-
-        #inputArea input { flex: 1; }
-
-        .footer-license {
-            margin-top: 40px; text-align: center;
-            font-size: 10px; color: var(--text-dim);
-            letter-spacing: 2px;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="panel">
-        <h1><i class="fa-solid fa-tower-broadcast"></i> Connection</h1>
-        <form id="joinForm">
-            <div class="input-group">
-                <label for="username"><i class="fa-solid fa-user"></i> Identity</label>
-                <input type="text" id="username" name="username" required placeholder="Minecraft Username">
-            </div>
-            <div class="input-group">
-                <label for="password"><i class="fa-solid fa-key"></i> Passcode</label>
-                <input type="password" id="password" name="password" required placeholder="••••••••">
-            </div>
-            <div class="input-group">
-                <label for="mic"><i class="fa-solid fa-microphone"></i> Microphone</label>
-                <select id="mic" name="mic"><option>Loading...</option></select>
-            </div>
-            <div class="input-group">
-                <label for="speaker"><i class="fa-solid fa-volume-high"></i> Output</label>
-                <select id="speaker" name="speaker"><option value="default">System Default</option></select>
-            </div>
-            <button type="submit" id="joinbtn">JOIN SESSION</button>
-        </form>
-
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
-        
-        <h1><i class="fa-solid fa-sliders"></i> Engine Config</h1>
-        <div class="input-group">
-            <label>Capture Gain</label>
-            <input type="range" id="gainSlider" min="0" max="200" value="100">
-        </div>
-        <div class="input-group">
-            <label>VAD Sensitivity</label>
-            <input type="range" id="sensSlider" min="0" max="100" value="20">
-        </div>
+    <div id="micControls">
+        <button id="muteBtn" class="unmuted">Mute</button>
+        <span id="micIndicator" title="Mic activity"></span>
     </div>
 
-    <div class="panel">
-        <h1><i class="fa-solid fa-gears"></i> Engine Log</h1>
-        <div id="status">STATUS: STANDBY</div>
-        
-        <div id="log">-- System Initializing --</div>
+    <div id="status">Waiting to join...</div>
+    <div id="log"></div>
 
-        <div class="controls-row">
-            <button id="muteBtn" class="unmuted">MUTE</button>
-            <div id="micIndicator" class="mic-status-ring"><i class="fa-solid fa-waveform-lines"></i></div>
-            <button id="testSound" style="background: rgba(255,255,255,0.05); color: var(--text-dim); padding: 0 15px; border-radius: 12px; cursor: pointer;">
-                <i class="fa-solid fa-vial"></i> TEST
-            </button>
-        </div>
-
-        <div id="inputArea">
-            <input type="text" id="msgInput" placeholder="Type message..." />
-            <button id="messageButton" style="background: var(--accent); color: #000; padding: 0 20px; font-weight: 800; border-radius: 12px;">SEND</button>
-        </div>
+    <div id="inputArea">
+        <label for="msgInput"></label>
+        <input type="text" id="msgInput" placeholder="Type message..." />
+        <button id="messageButton">Send</button>
     </div>
-</div>
+    <button id="testSound" type="button">Test Sound</button>
 
-<footer class="footer-license">
-    &copy; 2026 POWERED BY <a href="#" style="color:var(--accent); text-decoration:none; font-weight:800;">FERFER STUDIO</a>
-</footer>
+    <script type="module">
+        import { start } from '/client.js';
+        start(); // manually triggers it
+    </script>
 
-<script type="module">
-    import { start } from '/client.js';
-
-    // Bridge elements to client.js expectations
-    window.addEventListener("DOMContentLoaded", () => {
-        // Automatically run the startup logic
-        start();
-        console.log("Audio Engine and UI components initialized.");
-    });
-</script>
-
-</body>
+    </body>
 </html>
